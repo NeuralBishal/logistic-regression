@@ -288,11 +288,13 @@ export function StageData() {
                       <SelectValue placeholder="Select target column" />
                     </SelectTrigger>
                     <SelectContent>
-                      {dataset.columns.map((c) => (
-                        <SelectItem key={c.name} value={c.name}>
-                          {c.name} — {c.uniqueCount} unique
-                        </SelectItem>
-                      ))}
+                      {dataset.columns
+                        .filter((c) => c.name !== "")
+                        .map((c) => (
+                          <SelectItem key={c.name} value={c.name}>
+                            {c.name} — {c.uniqueCount} unique
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>

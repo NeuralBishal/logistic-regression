@@ -461,11 +461,13 @@ export function StageTrain() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {allFeatures.map((n) => (
-                            <SelectItem key={n} value={n}>
-                              {n}
-                            </SelectItem>
-                          ))}
+                          {allFeatures
+                            .filter((n) => n !== "")
+                            .map((n) => (
+                              <SelectItem key={n} value={n}>
+                                {n}
+                              </SelectItem>
+                            ))}
                         </SelectContent>
                       </Select>
                       <Select value={feat2} onValueChange={setFeat2}>
@@ -473,11 +475,13 @@ export function StageTrain() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {allFeatures.map((n) => (
-                            <SelectItem key={n} value={n}>
-                              {n}
-                            </SelectItem>
-                          ))}
+                          {allFeatures
+                            .filter((n) => n !== "")
+                            .map((n) => (
+                              <SelectItem key={n} value={n}>
+                                {n}
+                              </SelectItem>
+                            ))}
                         </SelectContent>
                       </Select>
                     </div>

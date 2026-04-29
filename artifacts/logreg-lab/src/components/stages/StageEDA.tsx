@@ -216,11 +216,13 @@ export function StageEDA() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {processed.featureNames.map((n) => (
-                <SelectItem key={n} value={n}>
-                  {n}
-                </SelectItem>
-              ))}
+              {processed.featureNames
+                .filter((n) => n !== "")
+                .map((n) => (
+                  <SelectItem key={n} value={n}>
+                    {n}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
         </CardHeader>
