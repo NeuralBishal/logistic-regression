@@ -1,0 +1,31 @@
+kind = "data-app"
+previewPath = "/"
+title = "Logistic Regression Learning Lab"
+version = "1.0.0"
+id = "artifacts/logreg-lab"
+router = "path"
+
+[[integratedSkills]]
+name = "data-visualization"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24159
+
+[services.development]
+run = "pnpm --filter @workspace/logreg-lab run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/logreg-lab", "run", "build" ]
+publicDir = "artifacts/logreg-lab/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24159"
+BASE_PATH = "/"
