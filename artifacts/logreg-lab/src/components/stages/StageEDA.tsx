@@ -30,29 +30,27 @@ export function StageEDA() {
   const { dataset, processed, preCfg, setActiveStage } = useStore();
   const [chosen, setChosen] = useState<string | null>(null);
 
-  if (!dataset || !processed || !preCfg) {
-    return (
-      <Card>
-        <CardContent className="py-8 text-center text-muted-foreground">
-          Apply preprocessing first.
-        </CardContent>
-      </Card>
+  const featureCol = chosen ?? processed?.featureNames[0] ?? "";
+  const featureIdx = processed?.featureNames.indexOf(featureCol) ?? -1;
+
+  const classCounts = useMemo(() => {
+    if (!processed) return [];
+    return processed.classNames.map((name, i) => ({
+      name,
+      count: processed.y.filter((v) => v === i).length,
+    }));
+  }, [processed]);
+
+  const histAll = useMemo(() => {
+    if (!processed || featureIdx < 0) return [];
+    const featureValues = processed.featureMatrix.map(
+      (row) => row[featureIdx],
     );
-  }
+    return binCounts(featureValues, 20);
+  }, [processed, featureIdx]);
 
-  const featureCol = chosen ?? processed.featureNames[0];
-
-  // Class distribution
-  const classCounts = processed.classNames.map((name, i) => ({
-    name,
-    count: processed.y.filter((v) => v === i).length,
-  }));
-
-  // Distribution of one feature (overall + by class)
-  const featureIdx = processed.featureNames.indexOf(featureCol);
-  const featureValues = processed.featureMatrix.map((row) => row[featureIdx]);
-  const histAll = binCounts(featureValues, 20);
   const histByClass = useMemo(() => {
+    if (!processed || featureIdx < 0) return [];
     const byClass = processed.classNames.map((_, c) =>
       binCounts(
         processed.featureMatrix
@@ -70,8 +68,8 @@ export function StageEDA() {
     });
   }, [processed, featureIdx, histAll]);
 
-  // Correlation matrix (numeric features × target)
   const corrRows = useMemo(() => {
+    if (!processed) return [];
     const out: { feature: string; r: number }[] = [];
     for (let j = 0; j < processed.featureNames.length; j++) {
       const col = processed.featureMatrix.map((row) => row[j]);
@@ -81,14 +79,24 @@ export function StageEDA() {
     return out.sort((a, b) => Math.abs(b.r) - Math.abs(a.r));
   }, [processed]);
 
-  // Scatter (feature vs target jitter)
   const scatterData = useMemo(() => {
+    if (!processed || featureIdx < 0) return [];
     return processed.featureMatrix.map((row, i) => ({
       x: row[featureIdx],
       y: processed.y[i] + (Math.random() - 0.5) * 0.2,
       cls: processed.y[i],
     }));
   }, [processed, featureIdx]);
+
+  if (!dataset || !processed || !preCfg) {
+    return (
+      <Card>
+        <CardContent className="py-8 text-center text-muted-foreground">
+          Apply preprocessing first.
+        </CardContent>
+      </Card>
+    );
+  }
 
   const colors = ["#7c5cff", "#22b8a5", "#f59e0b", "#ec4899", "#0ea5e9"];
 

@@ -174,7 +174,9 @@ export function StagePredict() {
                         .map((r) => r[f])
                         .filter((v) => v !== null && v !== undefined),
                     ),
-                  ).map(String);
+                  )
+                    .map(String)
+                    .filter((v) => v !== "");
                   return (
                     <div key={f}>
                       <Label className="text-xs font-mono">{f}</Label>

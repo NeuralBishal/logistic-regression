@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -62,15 +62,17 @@ export function StageTrain() {
   const [feat1, setFeat1] = useState<string>(allFeatures[0] ?? "");
   const [feat2, setFeat2] = useState<string>(allFeatures[1] ?? "");
 
-  if (!processed) {
-    return (
-      <Card>
-        <CardContent className="py-8 text-center text-muted-foreground">
-          Apply preprocessing first.
-        </CardContent>
-      </Card>
-    );
-  }
+  // Re-pick defaults once processed loads (or when feature set changes).
+  useEffect(() => {
+    if (!processed) return;
+    if (!processed.featureNames.includes(feat1)) {
+      setFeat1(processed.featureNames[0] ?? "");
+    }
+    if (!processed.featureNames.includes(feat2)) {
+      setFeat2(processed.featureNames[1] ?? processed.featureNames[0] ?? "");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [processed]);
 
   async function handleTrain() {
     if (!processed) return;
@@ -118,7 +120,6 @@ export function StageTrain() {
     if (training.model.type === "binary") {
       return training.model.lossHistory.map((l, i) => ({ epoch: i, loss: l }));
     }
-    // average across OvR models
     const len = training.model.models[0]?.lossHistory.length ?? 0;
     const out: { epoch: number; loss: number }[] = [];
     for (let i = 0; i < len; i++) {
@@ -129,16 +130,14 @@ export function StageTrain() {
     return out;
   }, [training]);
 
-  // 2D decision boundary
   const idx1 = allFeatures.indexOf(feat1);
   const idx2 = allFeatures.indexOf(feat2);
   const boundary = useMemo(() => {
-    if (!training || idx1 < 0 || idx2 < 0 || idx1 === idx2) return null;
+    if (!processed || !training || idx1 < 0 || idx2 < 0 || idx1 === idx2)
+      return null;
     if (training.model.type !== "binary") return null;
     const w1 = training.model.weights[idx1];
     const w2 = training.model.weights[idx2];
-    // Use mean of other features (≈ 0 after standard scaling) so the
-    // visualised boundary uses the trained bias plus the other features' contribution.
     let baseZ = training.model.bias;
     for (let j = 0; j < training.model.weights.length; j++) {
       if (j === idx1 || j === idx2) continue;
@@ -147,7 +146,6 @@ export function StageTrain() {
         processed.featureMatrix.length;
       baseZ += training.model.weights[j] * m;
     }
-    // Range
     const xs = processed.featureMatrix.map((r) => r[idx1]);
     const ys = processed.featureMatrix.map((r) => r[idx2]);
     const xmin = Math.min(...xs);
@@ -169,7 +167,7 @@ export function StageTrain() {
   }, [training, processed, idx1, idx2]);
 
   const scatterPoints = useMemo(() => {
-    if (!training || idx1 < 0 || idx2 < 0) return [];
+    if (!processed || !training || idx1 < 0 || idx2 < 0) return [];
     return processed.featureMatrix.map((r, i) => ({
       x: r[idx1],
       y: r[idx2],
@@ -177,9 +175,9 @@ export function StageTrain() {
     }));
   }, [processed, training, idx1, idx2]);
 
-  // Probability curve along feat1 holding others at mean
   const probCurve = useMemo(() => {
-    if (!training || training.model.type !== "binary" || idx1 < 0) return [];
+    if (!processed || !training || training.model.type !== "binary" || idx1 < 0)
+      return [];
     const mean = new Array(training.model.weights.length).fill(0).map((_, j) => {
       return (
         processed.featureMatrix.reduce((s, r) => s + r[j], 0) /
@@ -199,6 +197,16 @@ export function StageTrain() {
     }
     return out;
   }, [processed, training, idx1]);
+
+  if (!processed) {
+    return (
+      <Card>
+        <CardContent className="py-8 text-center text-muted-foreground">
+          Apply preprocessing first.
+        </CardContent>
+      </Card>
+    );
+  }
 
   const colors = ["#7c5cff", "#22b8a5", "#f59e0b", "#ec4899", "#0ea5e9"];
 
