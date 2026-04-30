@@ -1,0 +1,11 @@
+# Ignore all TypeScript source files
+*.ts
+!*.mjs
+!*.js
+
+# Ignore the entire src directory from type checking
+artifacts/api-server/src/*.ts
+
+# Ignore tsconfig files
+tsconfig*.json
+*.tsconfig.json
