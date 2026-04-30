@@ -6,18 +6,19 @@ import { logger } from "./lib/logger";
 
 const app: Express = express();
 
+// @ts-ignore - Bypass pino-http type issue on Vercel
 app.use(
   pinoHttp({
     logger,
     serializers: {
-      req(req) {
+      req(req: any) {
         return {
           id: req.id,
           method: req.method,
           url: req.url?.split("?")[0],
         };
       },
-      res(res) {
+      res(res: any) {
         return {
           statusCode: res.statusCode,
         };
