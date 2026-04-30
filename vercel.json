@@ -1,5 +1,4 @@
 {
-  "buildCommand": "cd artifacts/api-server && node build.mjs",
-  "installCommand": "pnpm install",
-  "outputDirectory": "artifacts/api-server/dist"
+  "buildCommand": "node vercel-build.js",
+  "installCommand": "pnpm install"
 }
