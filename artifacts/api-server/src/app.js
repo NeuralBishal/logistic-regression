@@ -1,24 +1,24 @@
 import express from "express";
 import cors from "cors";
 import pinoHttp from "pino-http";
-import router from "./routes";
-import { logger } from "./lib/logger";
+import router from "./routes/index.js";
+import { logger } from "./lib/logger.js";
 
-const app: Express = express();
+const app = express();
 
-// @ts-ignore - Bypass pino-http type issue on Vercel
+
 app.use(
   pinoHttp({
     logger,
     serializers: {
-      req(req: any) {
+      req(req) {
         return {
           id: req.id,
           method: req.method,
           url: req.url?.split("?")[0],
         };
       },
-      res(res: any) {
+      res(res) {
         return {
           statusCode: res.statusCode,
         };
